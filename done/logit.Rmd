@@ -1,0 +1,168 @@
+---
+title: "Adósminősítő rendszer építése - Logit modell"
+date: "10/05/2020"
+output: html_document
+---
+
+A cél: banki adósminősítő modell készítése.
+
+Adatfájl: *bankloan.RData* \
+Forrás: IBM SPSS adatfájl \
+Jelleg: keresztmetszeti \
+Megfigyelések: 700 adós \
+\
+Numerikus változók:
+
+ * *age*: életkor (év), 
+ * *employ*: munkaviszony hossza (év), 
+ * *address*: mióta lakik a jelenlegi lakcímén (év), 
+ * *debtinc*: összes adósság az éves jövedelem %-ában, 
+ * *lincome*: éves jövedelem (ezer USD) logaritmusa,
+ * *lcreddebt*: hitelkártya-adósság (ezer USD) logaritmusa,
+ * *lothdebt*: egyéb adósság (ezer USD) logaritmusa.
+
+Kategorikus változók:
+
+ * *ed* (ordinális): iskolázottság (5 kategória),
+ * *default* (nominális): fizetésképtelenség (No/Yes).
+
+**1. feladat**
+
+Hajtsa végre az alábbi modellezési lépéseket!
+
+ a. Töltse be az adatfájlt, valamint a *car*, *HH*, *lmtest* és *sandwich* kiegészítő csomagokat!
+ b. Építsen logit modellt, amely a fizetésképtelenséget minden lehetséges prediktor segítségével magyarázza!
+ c. Szűrje új táblába, és nézze meg a kilógó egyéneket!
+ d. Becsülje újra a modellt, és vizsgálja meg a multikollinearitást!
+ e. Vizsgálja meg, és szükség esetén kezelje a nemlinearitást!
+ f. Amennyiben vannak felesleges prediktorok a modellben, távolítsa el azokat!
+ 
+----------------------
+
+1.a. Betöltés:
+```{r}
+library(readr)
+bankloan <- read.csv("C:/rprojects/lm-clustering-pca/bankloan.csv")
+ library(car)
+ library(HH)
+ library(lmtest)
+ library(sandwich)
+```
+
+```{r}
+bankloan$default <- bankloan$default == "Yes"
+```
+
+
+1.b. Logit modell:
+```{r}
+ logit <- glm(default~., data=bankloan, family=binomial(logit))
+ summary(logit)
+```
+
+1.c. Kilógó értékek:
+```{r}
+ bankloan[abs(rstudent(logit))>3, ]
+```
+Nincsenek kilógó egyének! Nem kell szűrni.
+
+1.d. Multikollinearitás:
+```{r}
+ vif(logit)
+```
+Vannak 5 feletti VIF értékek, tehát hagyjuk el az lincome változót.
+```{r}
+ logit2 <- glm(default~.-lincome, data=bankloan, family=binomial(logit))
+ vif(logit2)
+```
+A Did not complete high school VIF mutatója 5 feletti. Összeolvaszthatjuk ezt a kategóriát a High school degree-vel.
+```{r}
+bankloan[bankloan$ed=="Did not complete high school", "ed"]<- "High school degree" 
+```
+Most a High school degree érték azt jelzi, hogy legfeljebb érettségijük van.
+
+```{r}
+summary(logit)
+```
+
+
+```{r}
+ logit3 <- glm(default~.-lincome, data=bankloan, family=binomial(logit))
+ vif(logit3)
+```
+Már nincs multikollinearitás!
+
+1.e. Linearitás:
+```{r}
+ resettest(logit3)
+```
+Mivel p<0,05, H0-t elvetjük, tehát nem lineáris a modell. :(
+```{r}
+ crPlots(logit3)
+```
+Az employ változónál probléma van, zoomoljunk rá:
+```{r}
+ crPlots(logit3, ~employ)
+```
+5 év munkaviszony esetén töréspont látszik. Rakjuk bele a modellbe!
+```{r}
+ logit4 <- glm(default~.-lincome+pmax(employ-5, 0), data=bankloan, family=binomial(logit))
+ summary(logit4)
+ resettest(logit4)
+```
+Jobb lett a RESET teszt, de még mindig nem lineáris a modell. :(
+
+A debtinc CR diagramja:
+```{r}
+ crPlots(logit4, ~debtinc)
+```
+15 körül töréspontja van. Rakjuk bele a modellbe!
+```{r}
+ logit5 <- glm(default~.-lincome+pmax(employ-5, 0)+pmax(debtinc-15,0), data=bankloan, family=binomial(logit))
+ summary(logit5)
+ resettest(logit5)
+```
+
+Az lcreddebt CR diagramja:
+```{r}
+ crPlots(logit4, ~lcreddebt)
+```
+A 0 környékén töréspontja van.
+```{r}
+ logit5 <- glm(default~.-lincome+pmax(employ-5, 0)+pmax(debtinc-15,0)+pmax(lcreddebt-0,0), data=bankloan, family=binomial(logit))
+ summary(logit5)
+ resettest(logit5)
+```
+Még mindig nem lineáris. Házi feladat addig javítgatni a modellt, amíg lineáris nem lesz.
+
+2.f. Felesleges prediktorok:
+```{r}
+summary(logit5)
+```
+
+1.f. Van egy csomó feleslegesnek tűnő változó. Egyben kidobhatók-e? Parciális khí-négyzet teszt.
+```{r}
+ linearHypothesis(logit5, c("edHigh school degree=0", "edPost-undergraduate degree=0", "edSome college=0", "lothdebt=0", "lcreddebt=0", "pmax(employ - 5, 0)=0", "pmax(debtinc - 15, 0)=0", "age=0"))
+```
+Mivel p>0,05, H0-t elfogadjuk, tehát ezeket mind eldobhatjuk.
+
+
+**2. feladat**
+
+Értelmezze az 1. feladat végén kapott modellt az alábbiak szerint!
+
+ a. Hogyan értelmezhető a prediktorok parciális hatása?
+ b. Melyek a legfontosabb prediktorok?
+ c. Minősítse a modell teljesítményét!
+ d. Határozza meg az optimális küszöbértéket abban az esetben, ha a másodfajú hiba ötször költségesebb az elsőfajú hibánál!
+
+------------------------------------
+
+
+
+
+
+
+
+
+

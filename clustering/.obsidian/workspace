@@ -1,0 +1,125 @@
+{
+  "main": {
+    "id": "08735a2421f4a9ca",
+    "type": "split",
+    "children": [
+      {
+        "id": "110b24dcdcddd6fc",
+        "type": "leaf",
+        "state": {
+          "type": "pdf",
+          "state": {
+            "file": "bib/erasmus_clustering_course.pdf"
+          }
+        }
+      },
+      {
+        "id": "69d521b2a63ce9b5",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "optimal number of clusters.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e677a0e4907b9e18",
+    "type": "split",
+    "children": [
+      {
+        "id": "2c4c715d5ad69026",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4bfe58fc9fa77844",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "fabc1857648bfea5",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tag:#definition",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 488,
+    "collapsed": true
+  },
+  "right": {
+    "id": "ba2776fb57333977",
+    "type": "split",
+    "children": [
+      {
+        "id": "8f7ac29462ec31ca",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c150f122b1deb807",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "optimal number of clusters.md",
+                "collapseAll": true,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "a0117d0da6482abf",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "69d521b2a63ce9b5",
+  "lastOpenFiles": [
+    "optimal number of clusters.md",
+    "bib/erasmus_clustering_course.pdf",
+    "Normalization.md",
+    "K-means.md",
+    "optimal number for clustering.md",
+    "Dendogram.md",
+    "Validity.md",
+    "Ward-distance.md",
+    "bib/vekas_slide_cluster.pdf",
+    "Untitled.md"
+  ]
+}

@@ -1,0 +1,202 @@
+---
+title: "Mitől függnek a fizetések? - Lineáris regresszió"
+date: "10/05/2020"
+output: html_document
+---
+
+A cél feltérképezni lineáris regresszióval, hogy milyen tényezőktől függnek a fizetések egy vállalatnál.
+
+Adatfájl: *employee.RData* \
+Forrás: IBM SPSS adatfájl \
+Jelleg: keresztmetszeti \
+Megfigyelések: 473 munkavállaló \
+\
+Numerikus változók:
+
+ * *salary*: éves fizetés (ezer USD),
+ * *age*: életkor (év), 
+ * *educ*: iskolázottság (év),
+ * *jobtime*: mióta dolgozik a cégnél (hónap),
+ * *prevexp*: korábbi munkatapasztalat (hónap).
+
+Kategorikus változók:
+
+ * *gender* (nominális): nem (Female/Male),
+ * *jobcat* (nominális): munkakör (Clerical/Custodial/Manager),
+ * *minority* (nominális): kisebbségi származás (No/Yes).
+
+# 0. feladat
+
+```{r}
+hist(exp(rnorm(1000)))
+```
+
+```{r}
+rnorm(1000) %>% 
+        exp() %>% 
+        hist()
+```
+
+
+**1. feladat**
+
+```{r}
+library(car)
+library(HH)
+library(lmtest)
+library(sandwich)
+library(dplyr)
+```
+
+```{r}
+eurostat::search_eurostat( "unemployment")
+```
+
+
+```{r}
+employee <- readr::read_csv("employee.csv") %>% 
+        select(-1)
+```
+
+Hajtsa végre az alábbiak modellezési lépéseket!
+
+ a. Töltse be az adatfájlt, valamint a *car*, *HH*, *lmtest* és *sandwich* kiegészítő csomagokat!
+ b. Építsen lineáris regressziós modellt, amely a fizetés logaritmusát minden lehetséges prediktor segítségével magyarázza!
+ c. Szűrje új táblába, és nézze meg a kilógó egyéneket!
+ d. Becsülje újra a modellt, és vizsgálja meg a multikollinearitást!
+ e. Lehet-e ebben a példában probléma a hibatagok nemnormalitása? Vizsgálja meg ábrákon a feltevés teljesülését!
+ f. Tesztelje a heteroszkedaszticitást! Probléma esetén a továbbiakban járjon el megfelelő módon!
+ g. Vizsgálja meg és szükség esetén kezelje a nemlinearitást!
+ h. Amennyiben vannak felesleges prediktorok a modellben, távolítsa el azokat!
+ 
+------------------------------------------------
+
+```{r}
+fit1 <- lm(formula = "log(salary) ~ .", data = employee)
+```
+
+```{r}
+library(broom)
+```
+
+```{r}
+fit1
+broom::tidy(fit1)
+broom::glance(fit1)
+broom::augment(fit1)
+```
+
+```{r}
+set.seed(2021)
+sample_df <- data.frame(x = rnorm(100), y = rnorm(100))
+lm("y ~ x", data = sample_df)
+
+outlier_df <- data.frame(x = 100, y = 100)
+outlier_df2 <- rbind(outlier_df, sample_df)
+
+lm("y ~ x", data = outlier_df2) %>% 
+        broom::augment() %>% 
+        pull(.cooksd) %>% 
+        plot()
+```
+
+## c
+
+```{r}
+fit1 %>% 
+        broom::augment() %>% 
+        pull(.cooksd) %>% 
+        plot()
+```
+
+```{r}
+sum(abs(rstudent(fit1)) > 3) # rule of thumb
+
+```
+
+6 értéktől fogunk megválni
+
+```{r}
+szurt_df <- employee[abs(rstudent(fit1)) <= 3, ]
+```
+
+```{r}
+fit2 <- lm("log(salary) ~ .", data = szurt_df)
+vif(fit2)
+# vif > 2: zavaró
+# vif > 5: káros
+# vif > 10: elfogadhatatlan
+```
+
+```{r}
+options(scipen = 999)
+options(scipen = 1)
+```
+
+
+```{r}
+broom::tidy(fit2)
+```
+
+```{r}
+hist(fit2$residuals)
+qqnorm(fit2$residuals)
+```
+
+```{r}
+bptest(fit2)
+```
+
+Van hetero..
+
+-> Becsült paramétereket standard hibái torzítottak -> Konfidencia intervallumok is -> Becsült paraméterekhez tartozó t-próbák p-értékei nem helyesek.
+
+```{r}
+coeftest(fit2, vcov = vcovHC) %>% 
+        broom::tidy()
+```
+
+```{r}
+linearHypothesis(fit2, "prevexp = 0")
+```
+
+
+**2. feladat**
+
+Értelmezze az 1. feladat végén kapott modellt az alábbiak szerint!
+
+```{r}
+broom::tidy(fit2) %>% 
+        mutate(estimate = exp(estimate))
+```
+
+
+ a. Hogyan értelmezhető a prediktorok parciális hatása?
+ 
+ 
+ 
+ b. Melyek a legfontosabb prediktorok?
+
+```{r}
+GGally::ggcoef_model(fit2)
+```
+
+```{r}
+broom::tidy(fit2)
+```
+
+
+ c. Minősítse a modell teljesítményét!
+ 
+```{r}
+broom::glance(fit2)
+```
+ 
+```{r}
+lm("salary ~ .", data = szurt_df) %>% 
+        broom::glance()
+```
+ 
+ 
+ d. Korreláció vagy ok-okozati kapcsolat áll fenn az egyes prediktorok és a fizetések között?
+

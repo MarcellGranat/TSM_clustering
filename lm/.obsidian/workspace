@@ -1,0 +1,112 @@
+{
+  "main": {
+    "id": "c337a6debadd5b65",
+    "type": "split",
+    "children": [
+      {
+        "id": "eb5ad7bafccebba5",
+        "type": "leaf",
+        "state": {
+          "type": "pdf",
+          "state": {
+            "file": "Sources/linreg (1).pdf"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "d7e9f3b1fcd6d389",
+    "type": "split",
+    "children": [
+      {
+        "id": "328c279fc3358776",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3e6c77be6d02c12f",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "7247e629ce0ea254",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "36b0a2d8f705ba17",
+    "type": "split",
+    "children": [
+      {
+        "id": "e5e127560aed66c5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "17ccf27197a1da14",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Sources/linreg (1).pdf",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "33522fefd9dd9b08",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "eb5ad7bafccebba5",
+  "lastOpenFiles": [
+    "Sources/linreg (1).pdf",
+    "Templates/Note template.md",
+    "Literature notes.md",
+    "Permanent notes.md",
+    "Untitled 1.md",
+    "Untitled.md",
+    "Permanent notes/Cook distance.md",
+    "TSM lecture.md",
+    "Untitled 2.md",
+    "Templates/Templates.md"
+  ]
+}

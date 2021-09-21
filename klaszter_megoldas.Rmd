@@ -1,0 +1,119 @@
+---
+title: "Klaszterelemzés"
+date: "11/16/2020"
+output: html_document
+---
+
+**1. feladat**
+
+Az alábbi részfeladatok megoldásához szűrje a *world.csv* adatfájlt az európai országokra!
+
+a. Szükséges-e az adatok sztenderdizálása?
+b. Végezze el az európai országok hierarchikus klaszterezését az egy főre jutó GDP, a születéskor várható élettartam, az inflációs ráta és a munkanélküliségi ráta alapján!
+c. Ábrázolja dendrogramon az eredményeket, k=4 klaszter mellett!
+d. Melyik országokhoz hasonlít leginkább Magyarország a négy klaszterező változó tekintetében?
+
+------------------------------------
+
+Betöltés:
+```{r}
+ world <- read.csv("world.csv")
+```
+
+1.a. Sztenderdizálás szükséges, hogy eltüntessük a mértékegységeket, és így egyértelmű eredményt kapjunk.
+
+Szűrjűk az adatokat Európára és a négy megadott változóra, majd sztenderdizáljuk azokat:
+```{r, message=FALSE}
+ library(dplyr)
+ world %>% filter(region=="Europe") %>% select(country, gdpcapita, lifeexp, inflation, unemployment) -> szurt
+  row.names(szurt) <- szurt$country
+  szurt$country <- NULL
+  szurt <- scale(szurt)
+```
+
+1.b. Hierarchikus klaszterezés:
+```{r}
+ hier <- hclust(dist(szurt), method="ward")
+ plot(hier)
+```
+
+Látjuk, hogy egy keleti és egy nyugati blokkra hasad Európa, kivéve Portugáliát, és ezeken belül vannak karakteres részcsoportok. 'Data-driven' megközelítés.
+
+1.c. Képezzünk k=4 klasztert:
+```{r}
+ library(factoextra)
+ fviz_dend(hier, k=4)
+```
+
+```{r}
+fviz_dend(hier, k=4, type = "circular")
+```
+
+
+1.d. Lengyelországhoz és Szlovákiához.
+
+**2. feladat**
+
+Az alábbi részfeladatok megoldásához használja a *Mall_Customers.csv* adatfájlt, amely egy cég 200 törzsvásárlói kártyával rendelkező ügyfelének adatait tartalmazza! 
+
+a. Szükséges-e az adatok sztenderdizálása?
+b. Építsen három klasztert a k-középpontú algoritmussal, tegye stabillá a megoldást, és mentse el az adattáblába a klaszterazonosító változót!
+c. Értelmezze a klasztereket!
+d. Mennyi a klaszterek ideális száma a gap-statisztika alapján? Értelmezze az így kapott klasztereket!
+e. Állapítsa meg a klaszterek ideális számát a szakirodalomban elterjedt módszerek alapján!
+f. Vonja be az elemzésbe a nemet mint prediktor változót, és alkalmazza a k-prototípus eljárást!
+
+------------------------------------
+
+Betöltés és előkészítés:
+```{r}
+ Mall_Customers <- read.csv("Mall_Customers.csv")
+ colnames(Mall_Customers) <- c("ID", "gender", "age", "income", "spending")
+ Mall_Customers %>% select(age, income, spending) -> vasarlok
+ vasarlok <- scale(vasarlok)
+```
+
+1.a. Kell sztenderdizálni a mértékegységek miatt.
+
+1.b. k-középpontú klaszterezés:
+```{r}
+ kkozep <- kmeans(vasarlok, centers=3)
+ kkozep
+ #A végeredmény véletlenszerű :(
+ kkozep <- kmeans(vasarlok, centers=3, nstart=100, iter.max=100)
+ kkozep
+ #Most már stabil :)
+```
+
+91 (45,5%) elemű csoport: átlagnál idősebb, átlagos jövedelmű, átlagnál kevesebbet költ
+41 (20,5%) elemű csoport: nagyjából átlagos korú, legmagasabb jövedelmű, legtöbbet költ
+68 (+34%) elemű csoport: legfiatalabbak, alacsony jövedelmű, átlagos költekezésű
+
+Mentsük el az eredményváltozót:
+```{r}
+ Mall_Customers$klaszter <- as.factor(kkozep$cluster)
+ levels(Mall_Customers$klaszter) <- c("idős", "középkorú", "fiatal")
+```
+
+A klaszterezés jósága: R-négyzet=50,8%. Ez elég jó ahhoz képest, hogy 200 sort 3-ba tömörítettünk, és mégis megmaradt az információ kicsit több, mint fele.
+
+2.e. Hány klaszter van? R-négyzet helyett a gap-statisztikát maximalizáljuk:
+
+```{r}
+ fviz_nbclust(vasarlok, FUNcluster=kmeans, method="gap_stat")
+ #kmeans helyére hclust-ot írva a hierarchikusra is működne
+```
+
+A gap-statisztika alapján k=6 az optimális klaszterszám (k=8-ra több a gap-statisztika, de nem szignifikánsan.)
+
+Csináljunk 6 klasztert:
+```{r}
+ kkozep6 <- kmeans(vasarlok, centers=6, nstart=100, iter.max=100)
+ kkozep6
+```
+HF. értelmezni a klasztereket.
+
+
+
+
+

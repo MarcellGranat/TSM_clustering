@@ -1,0 +1,128 @@
+---
+title: "Főkomponens-elemzés (Principal Components Analysis)"
+date: "11/23/2020"
+output: html_document
+---
+
+**1. feladat**
+
+Az alábbi részfeladatok megoldásához importálja a *yields.xls* adatfájlt, amely különböző lejáratú magyar állampapírok évesített hozamait tartalmazza a 1999-2019 közötti időszakban!
+
+a. Végezzen főkomponens-elemzést, és csak az 1-nél nagyobb sajátértékű főkomponenseket tartsa meg! 
+b. Hány dimenzióba sikerül így tömöríteni az adatokat? Az információtartalom mekkora hányadát őrzik meg a megtartott főkomponensek?
+c. Mit jelentenek az egyes főkomponensek?
+d. Vizualizálja a főkomponensek alakulását! []
+
+------------------------------------
+
+Betöltés:
+```{r}
+ yields <- read_excel("yields.xls", col_types = c("date", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"))
+```
+
+1.a. Főkomponens-elemzés:
+```{r}
+ fokomp1 <- princomp(scale(yields[ ,-1]))
+ #A korrelációs mátrix 14db sajátértéke, azaz a főkomponensek varianciái (információtartalmai)
+ fokomp1$sdev^2
+ summary(fokomp1)
+```
+A Kaiser-kritérium alapján az 1-nél nagyobb sajátértékeket tartjuk meg, tehát csak 1 darabot. Így az információ 96,28%-a marad meg. Ha a másodikat is hozzávesszük, akkor már 99,76% marad meg. 
+
+Tartsunk meg kettőt, mert annyit még jól fogunk tudni értelmezni (ez még nem látszik, de "tudjuk").
+```{r}
+ yields <- cbind(yields, fokomp1$scores[ ,1:2])
+```
+
+1.c. Értelmezés:
+```{r}
+ fokomp1$loadings
+```
+Az 1. PC minden lejárat hozamait kb. azonos pozitív súllyal veszi figyelembe, tehát egy átlagos kamatszintet mutat.
+A 2. PC a rövid lejáratokat pozitív, a közepeseket nulla, a hosszúkat pedig negatív súllyal veszi figyelembe, tehát ha nő, akkor a hozamgörbe lapul, ha csökken, akkor pedig meredekebbé válik. Tehát lapultságot mér. Szorozzuk meg (-1)-gyel:
+```{r}
+ yields$Comp.2 <- -yields$Comp.2
+```
+Így már meredekséget mér.
+
+Írjuk be a táblába a főkomponensek nevét:
+```{r}
+ colnames(yields)[16:17] <- c("Szint", "Meredekseg")
+```
+
+1.d. Vizualizáció:
+```{r}
+ library(ggplot2)
+ ggplot(yields)+geom_line(aes(x=Date, y=Szint))+geom_line(aes(x=Date, y=Meredekseg, col=I("red")))+geom_smooth(aes(x=Date, y=Szint))+geom_smooth(aes(x=Date, y=Meredekseg, col=I("red")))
+```
+
+**2. feladat**
+
+Az alábbi részfeladatok megoldásához importálja az *osztalyzatok.sav* SPSS adatfájlt, amely 281 iskolai tanuló év végi jegyeit tartalmazza 13 tantárgyból!
+
+a. Végezzen főkomponens-elemzést a tantárgyi eredményeken (a magatartás és a szorgalom jegyek kivételével)!
+b. Hány dimenzióba sikerül így tömöríteni az adatokat? Az információtartalom mekkora hányadát őrzik meg a megtartott főkomponensek?
+c. Mit jelentenek az egyes főkomponensek?
+d. Végezzen k-középpontú klaszterezést is, ahol a gap-statisztika alapján állapítsa meg a klaszterek számát!
+e. Ábrázolja a tanulókat és klasztereiket pontdiagramon a két legfontosabb főkomponens terében!
+
+-------------------------------
+
+Importálás:
+```{r}
+ osztalyzatok <- read_sav("osztalyzatok.sav")
+```
+
+2.a. Főkomponens-elemzés:
+```{r}
+ fokomp <- princomp(scale(osztalyzatok[ ,3:13]))
+ #A korrelációs mátrix sajátértékei adják meg a főkomponensek varianciáját
+ fokomp$sdev^2
+ summary(fokomp)
+```
+
+2.b. Főkomponensek száma:
+- Kaiser-kritérium: 1-nél nagyobb sajátértékű főkomponenseket tartjuk meg. Eszerint 2-t kell megtartani. 
+- Alternatíva: x%-nyi információt akarunk megőrizni. Pl. ha 60%-nyi információt akarunk megőrizni, ahhoz 3-at kellene megtartani. 
+- Fontos, hogy csak annyit tartsunk meg, amennyit még jól lehet értelmezni.
+- Fontos az is, hogy csökkenjen a dimenzió.
+
+Legyen 3, mert látni fogjuk, hogy annyi még jól értelmezhető. Így a variancia (információ) 63,5%-át őrizzük meg. 
+```{r}
+ osztalyzatok <- cbind(osztalyzatok, fokomp$scores[ ,1:3])
+```
+
+2.c. Értelmezés:
+```{r}
+ fokomp$loadings
+```
+Az 1. PC minden tárgyat kb. azonos súllyal figyelembe vesz, tehát azt méri, hogy mennyire jó tanuló a diák.
+A 2. PC a humán tárgyakat veszi figyelembe pozitív súllyal, és a reál tárgyakat negatívval, tehát ez a humán beállítottságot méri.
+A 3. PC leginkább a testnevelést és a rajzot méri, negatív súllyal, tehát az "ügyetlenséget" méri. Be lehet szorozni (-1)-gyel:
+```{r}
+ osztalyzatok$Comp.3 <- -osztalyzatok$Comp.3
+```
+Így már ügyességet mér.
+
+Nevezzük is el az oszlopokat:
+```{r}
+ colnames(osztalyzatok)[14:16] <- c("Jo_tanulo", "Human", "Ugyes")
+```
+
+2.d. k-középpontú klaszterezés:
+```{r, message=FALSE}
+ library(factoextra)
+ fviz_nbclust(scale(osztalyzatok[ ,3:13]), FUNcluster=kmeans,  method="gap_stat")
+ #A gap-statisztika alapján 7 csoport van
+ kkozep <- kmeans(scale(osztalyzatok[ ,3:13]), centers=7, nstart=100, iter.max=100)
+ kkozep
+ osztalyzatok$klaszter <- kkozep$cluster
+```
+
+2.e. Tanulók főkomponensei és klaszterei egyben:
+```{r}
+ fviz_pca_biplot(fokomp, habillage=osztalyzatok$klaszter)
+```
+
+
+

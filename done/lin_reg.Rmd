@@ -1,0 +1,152 @@
+---
+title: "Mitől függnek a fizetések? - Lineáris regresszió"
+date: "10/05/2020"
+output: html_document
+---
+
+A cél feltérképezni lineáris regresszióval, hogy milyen tényezőktől függnek a fizetések egy vállalatnál.
+
+Adatfájl: *employee.RData* \
+Forrás: IBM SPSS adatfájl \
+Jelleg: keresztmetszeti \
+Megfigyelések: 473 munkavállaló \
+\
+Numerikus változók:
+
+ * *salary*: éves fizetés (ezer USD),
+ * *age*: életkor (év), 
+ * *educ*: iskolázottság (év),
+ * *jobtime*: mióta dolgozik a cégnél (hónap),
+ * *prevexp*: korábbi munkatapasztalat (hónap).
+
+Kategorikus változók:
+
+ * *gender* (nominális): nem (Female/Male),
+ * *jobcat* (nominális): munkakör (Clerical/Custodial/Manager),
+ * *minority* (nominális): kisebbségi származás (No/Yes).
+
+**1. feladat**
+
+Hajtsa végre az alábbiak modellezési lépéseket!
+
+ a. Töltse be az adatfájlt, valamint a *car*, *HH*, *lmtest* és *sandwich* kiegészítő csomagokat!
+ b. Építsen lineáris regressziós modellt, amely a fizetés logaritmusát minden lehetséges prediktor segítségével magyarázza!
+ c. Szűrje új táblába, és nézze meg a kilógó egyéneket!
+ d. Becsülje újra a modellt, és vizsgálja meg a multikollinearitást!
+ e. Lehet-e ebben a példában probléma a hibatagok nemnormalitása? Vizsgálja meg ábrákon a feltevés teljesülését!
+ f. Tesztelje a heteroszkedaszticitást! Probléma esetén a továbbiakban járjon el megfelelő módon!
+ g. Vizsgálja meg és szükség esetén kezelje a nemlinearitást!
+ h. Amennyiben vannak felesleges prediktorok a modellben, távolítsa el azokat!
+ 
+------------------------------------------------
+
+1.a. Betöltés:
+```{r, message=FALSE}
+ employee <- read.csv("employee.csv")
+ library(car)
+ library(HH)
+ library(lmtest)
+ library(sandwich)
+```
+
+1.b. Lineáris regresszió:
+```{r}
+ linreg <- lm(log(salary)~.-X, data=employee)
+ summary(linreg)
+```
+
+1.c. Kilógó értékek:
+```{r}
+ kilogok <- employee[abs(rstudent(linreg))>3, ]
+ szurt <- employee[abs(rstudent(linreg))<=3, ]
+ linreg2 <- lm(log(salary)~.-X, data=szurt)
+ summary(linreg2)
+```
+
+1.d. Multikollinearitás:
+```{r}
+ vif(linreg2)
+```
+Mivel minden VIF<5, ezért nincs zavaró multikollinearitás.
+
+1.e. Hibatagok normalitása:
+```{r}
+ hist(resid(linreg2))
+ qqnorm(resid(linreg2))
+```
+Szimmetrikusak a hibatagok, és n>100, tehát ez a feltevés nem jelenthet problémát. De amúgy a hisztogram és a Q-Q diagram alapján sem látunk problémát.
+
+1.f. Heteroszkedaszticitás:
+```{r}
+ bptest(linreg2)
+```
+Mivel p<0,05, a H0-t elvetjük, tehát van heteroszkedaszticitás a modellben, vagyis a későbbi tesztek hamis eredményt adnak.
+
+1.g. Linearitás (RESET-teszt, mivel heteroszkedaszticitás van, ezért a robusztus változatot használjuk, erre való a *vcov* paraméter):
+```{r}
+ resettest(linreg2, vcov=vcovHC)
+```
+Mivel p>0,05, H0-t elfogadjuk, tehát lineáris a prediktorok hatása.
+
+Ha nem lenne lineáris, arra jók a CR diagramok:
+```{r}
+ crPlots(linreg2)
+```
+
+1.h. Felesleges prediktorok (a heteroszkedaszticitás miatt a robusztus tesztek):
+```{r}
+ coeftest(linreg2, vcov=vcovHC)
+```
+Mivel a prevexp változóra p>0,05, H0-t elfogadjuk, tehát ez a változó törölhető.
+```{r}
+ linreg3 <- lm(log(salary)~.-X-prevexp, data=szurt)
+ coeftest(linreg3, vcov=vcovHC)
+```
+Minden prediktor nagyon erős, szignifikáns.
+
+
+**2. feladat**
+
+Értelmezze az 1. feladat végén kapott modellt az alábbiak szerint!
+
+ a. Hogyan értelmezhető a prediktorok parciális hatása?
+ b. Melyek a legfontosabb prediktorok?
+ c. Minősítse a modell teljesítményét!
+ d. Korreláció vagy ok-okozati kapcsolat áll fenn az egyes prediktorok és a fizetések között?
+
+-----------------------------------
+
+2.a. Prediktorok parciális hatásai (mivel log-fizetés van a bal oldalon, a exponenciális együtthatókat nézzük):
+```{r}
+exp(coef(linreg3))
+```
+Ha az iskolaévek száma cet.par. egy évvel nő, a fizetés 1,0375-szörösére (3,75%-kal) nő várhatóan.
+Ha cet.par. egy irodai beosztott menedzserré lép elő, a fizetése 1,74-szeresére (74%-kal) nő várhatóan.
+
+Ábrához kell a *plotmo* csomag:
+```{r, message=FALSE}
+ library(plotmo)
+ plotmo(linreg3, inverse.func=exp)
+```
+
+
+2.b. Prediktorok fontossága (t-statisztikák abszolút értékei):
+```{r}
+summary(linreg3)
+```
+A menedzserség hatása a legerősebb, utána az iskolázottságé, utána pedig a férfi hatása.
+
+2.c. Teljesítmény:
+A prediktorok együttesen a log-fizetések varianciájának kb. 80%-át magyarázzák.
+A modell sztenderd hibája 0,175.
+
+2.d. Korreláció vagy okság?
+
+Kihagyott változó:
+Ha valaki férfi cet.par., a fizetése várhatóan 18%-kal magasabb. Vajon van-e diszkrimináció? Akkor diszkrimináció, ha oksági a kapcsolat. Itt lehet kihagyott változó problémája (részmunkaidő mint kihagyott változó).
+
+Fordított okság:
+A nem okozhatja a fizetést, visszafelé már nem lehetséges, tehát itt fordított nem okság.
+
+Mérési hiba:
+A nemet szinte biztos nem hibával figyeljük meg, tehát a mérési hiba elhanyagolható.

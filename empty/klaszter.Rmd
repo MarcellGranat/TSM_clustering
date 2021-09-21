@@ -1,0 +1,29 @@
+---
+title: "Klaszterelemzés"
+date: "11/16/2020"
+output: html_document
+---
+
+**1. feladat**
+
+Az alábbi részfeladatok megoldásához szűrje a *world.csv* adatfájlt az európai országokra!
+
+a. Szükséges-e az adatok sztenderdizálása?
+b. Végezze el az európai országok hierarchikus klaszterezését az egy főre jutó GDP, a születéskor várható élettartam, az inflációs ráta és a munkanélküliségi ráta alapján!
+c. Ábrázolja dendrogramon az eredményeket, k=4 klaszter mellett!
+d. Melyik országokhoz hasonlít leginkább Magyarország a négy klaszterező változó tekintetében?
+
+------------------------------------
+
+**2. feladat**
+
+Az alábbi részfeladatok megoldásához használja a *Mall_Customers.csv* adatfájlt, amely egy cég 200 törzsvásárlói kártyával rendelkező ügyfelének adatait tartalmazza! 
+
+a. Szükséges-e az adatok sztenderdizálása?
+b. Építsen három klasztert a k-középpontú algoritmussal, tegye stabillá a megoldást, és mentse el az adattáblába a klaszterazonosító változót!
+c. Értelmezze a klasztereket!
+d. Mennyi a klaszterek ideális száma a gap-statisztika alapján? Értelmezze az így kapott klasztereket!
+e. Állapítsa meg a klaszterek ideális számát a szakirodalomban elterjedt módszerek alapján!
+f. Vonja be az elemzésbe a nemet mint prediktor változót, és alkalmazza a k-prototípus eljárást!
+
+------------------------------------

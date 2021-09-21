@@ -1,0 +1,28 @@
+---
+title: "Főkomponens-elemzés (Principal Components Analysis)"
+date: "11/23/2020"
+output: html_document
+---
+
+**1. feladat**
+
+Az alábbi részfeladatok megoldásához importálja a *yields.xls* adatfájlt, amely különböző lejáratú magyar állampapírok évesített hozamait tartalmazza a 1999-2019 közötti időszakban!
+
+a. Végezzen főkomponens-elemzést, és csak az 1-nél nagyobb sajátértékű főkomponenseket tartsa meg! 
+b. Hány dimenzióba sikerül így tömöríteni az adatokat? Az információtartalom mekkora hányadát őrzik meg a megtartott főkomponensek?
+c. Mit jelentenek az egyes főkomponensek?
+d. Jelezze előre 90 munkanapra a megőrzött főkomponenseket VAR modellel, és ez alapján adja meg az 1 hónapos lejáratú állampapír várható évesített hozamát 90 nap múlva! []
+
+------------------------------------
+
+**2. feladat**
+
+Az alábbi részfeladatok megoldásához importálja az *osztalyzatok.sav* SPSS adatfájlt, amely 281 iskolai tanuló év végi jegyeit tartalmazza 13 tantárgyból!
+
+a. Végezzen főkomponens-elemzést a tantárgyi eredményeken (a magatartás és a szorgalom jegyek kivételével), és varimax rotációval javítsa az értelmezhetőséget!
+b. Hány dimenzióba sikerül így tömöríteni az adatokat? Az információtartalom mekkora hányadát őrzik meg a megtartott főkomponensek?
+c. Mit jelentenek az egyes főkomponensek?
+d. Végezzen k-középpontú klaszterezést is, ahol a gap-statisztika alapján állapítsa meg a klaszterek számát!
+e. Ábrázolja a tanulókat és klasztereiket pontdiagramon a két legfontosabb főkomponens terében!
+
+-------------------------------

@@ -1,0 +1,1 @@
+>“The validation of clustering structures is the most difficult and frustrating part of cluster analysis. Without a strong effort in this direction, cluster analysis will remain a black art accessible only to those true believers who have experience and great courage.” [[erasmus_clustering_course.pdf#page=112]]
